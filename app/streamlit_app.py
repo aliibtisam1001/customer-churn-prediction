@@ -9,6 +9,10 @@ streamlit_app.py
   5. Explain      — SHAP waterfall for the predicted customer
 """
 
+import subprocess
+from pathlib import Path
+if not Path("models/xgboost.pkl").exists():
+    subprocess.run(["python", "src/train.py"], check=True)
 import sys
 import json
 import joblib
