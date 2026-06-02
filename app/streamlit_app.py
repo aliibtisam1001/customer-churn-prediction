@@ -9,10 +9,6 @@ streamlit_app.py
   5. Explain      — SHAP waterfall for the predicted customer
 """
 
-import subprocess
-from pathlib import Path
-if not Path("models/xgboost.pkl").exists():
-    subprocess.run(["python", "src/train.py"], check=True)
 import sys
 import json
 import joblib
@@ -24,11 +20,38 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from pathlib import Path
 
-# Paths
+# ---------------------------------------------------------------
+# Paths — must be set before any local imports
+# ---------------------------------------------------------------
 ROOT = Path(__file__).parent.parent
 SRC  = ROOT / "src"
 sys.path.insert(0, str(SRC))
 
+# ---------------------------------------------------------------
+# Auto-train: runs inside same Python process (no subprocess)
+# ---------------------------------------------------------------
+def auto_train():
+    """Train all models if not already saved."""
+    if (ROOT / "models" / "xgboost.pkl").exists():
+        return  # already trained
+
+    st.info("⏳ First launch — training models (2–3 mins)... please wait.")
+
+    from data_loader import load_raw_data
+    from preprocessing import preprocess
+    from train import train_and_evaluate
+
+    df = load_raw_data()
+    X_train, X_test, y_train, y_test, scaler, feature_names = preprocess(df)
+    train_and_evaluate(X_train, X_test, y_train, y_test, feature_names)
+    st.success("✅ Models trained! Reloading...")
+    st.rerun()
+
+auto_train()
+
+# ---------------------------------------------------------------
+# Local imports (after path is set)
+# ---------------------------------------------------------------
 from data_loader import load_raw_data, get_data_summary
 from preprocessing import preprocess, preprocess_single_row
 from evaluate import (
@@ -101,7 +124,6 @@ st.sidebar.markdown("[GitHub](https://github.com) · [Dataset](https://www.kaggl
 # ---------------------------------------------------------------
 try:
     df_raw = get_raw_data()
-    models_loaded = True
 except FileNotFoundError as e:
     st.error(str(e))
     st.stop()
@@ -111,9 +133,8 @@ try:
     models = get_models()
     results = get_results()
 except FileNotFoundError:
-    st.warning("⚠️ Models not trained yet. Run: `python src/train.py`")
-    models = None
-    results = {}
+    st.warning("⚠️ Models not found. Refresh the page to trigger training.")
+    st.stop()
 
 # ---------------------------------------------------------------
 # Page 1 — Home
@@ -148,7 +169,7 @@ if page == "🏠 Home":
         """)
 
     with col_b:
-        st.subheader("📁 Dataset Features")
+        st.subheader("📁 Dataset Preview")
         st.dataframe(
             df_raw.drop(columns=["customerID"]).head(8),
             use_container_width=True,
@@ -203,12 +224,8 @@ elif page == "📊 EDA":
 # ---------------------------------------------------------------
 elif page == "🤖 Model Results":
     st.title("🤖 Model Results")
-
-    if not models:
-        st.warning("Run `python src/train.py` first.")
-        st.stop()
-
     st.markdown("---")
+
     st.subheader("ROC Curves")
     st.plotly_chart(plot_roc_curves_plotly(models, X_test, y_test), use_container_width=True)
 
@@ -230,7 +247,7 @@ elif page == "🤖 Model Results":
 
     if results:
         st.markdown("---")
-        st.subheader("Full Metrics Table")
+        st.subheader("Full Metrics")
         r = results.get(selected_model_name, {})
         c1, c2, c3, c4, c5 = st.columns(5)
         c1.metric("Accuracy",  r.get("accuracy", "—"))
@@ -245,11 +262,6 @@ elif page == "🤖 Model Results":
 elif page == "🔮 Predict":
     st.title("🔮 Predict Customer Churn")
     st.markdown("Fill in a customer's details and get an instant churn probability.")
-
-    if not models:
-        st.warning("Run `python src/train.py` first.")
-        st.stop()
-
     st.markdown("---")
 
     with st.form("predict_form"):
@@ -306,8 +318,8 @@ elif page == "🔮 Predict":
 
         X_row = preprocess_single_row(raw_row, scaler, feature_names)
         model = models[model_choice]
-        prob = model.predict_proba(X_row)[0][1]
-        pred = "Churn" if prob >= 0.5 else "No Churn"
+        prob  = model.predict_proba(X_row)[0][1]
+        pred  = "Churn" if prob >= 0.5 else "No Churn"
 
         st.markdown("---")
         col_r1, col_r2, col_r3 = st.columns(3)
@@ -317,16 +329,15 @@ elif page == "🔮 Predict":
         col_r3.metric("Risk Level", risk)
 
         if prob >= 0.7:
-            st.error("⚠️ This customer is at high risk of churning. Intervention recommended.")
+            st.error("⚠️ High risk of churning. Intervention recommended.")
         elif prob >= 0.4:
             st.warning("🟡 Moderate churn risk. Consider a retention offer.")
         else:
             st.success("✅ This customer is likely to stay.")
 
-        # Store for Explain page
-        st.session_state["last_X_row"] = X_row
+        st.session_state["last_X_row"]      = X_row
         st.session_state["last_model_name"] = model_choice
-        st.session_state["last_prob"] = prob
+        st.session_state["last_prob"]       = prob
         st.info("👉 Go to **Explain** page to see why this prediction was made.")
 
 # ---------------------------------------------------------------
@@ -334,13 +345,9 @@ elif page == "🔮 Predict":
 # ---------------------------------------------------------------
 elif page == "🔍 Explain":
     st.title("🔍 SHAP Explainability")
-    st.markdown("Understand **why** the model makes its predictions — globally and per customer.")
-
-    if not models:
-        st.warning("Run `python src/train.py` first.")
-        st.stop()
-
+    st.markdown("Understand **why** the model makes its predictions.")
     st.markdown("---")
+
     tab1, tab2 = st.tabs(["🌍 Global Explanation", "👤 Customer Explanation"])
 
     with tab1:
@@ -352,9 +359,8 @@ elif page == "🔍 Explain":
         model_name_g = st.selectbox("Model:", list(models.keys()), key="global_model")
         model_g = models[model_name_g]
 
-        with st.spinner("Computing SHAP values (may take 20–30s) ..."):
-            # Use a sample of 300 rows for speed
-            X_sample = X_test.sample(min(300, len(X_test)), random_state=42)
+        with st.spinner("Computing SHAP values (20–30s) ..."):
+            X_sample   = X_test.sample(min(300, len(X_test)), random_state=42)
             explainer_g = get_explainer(model_g, X_train, model_name_g)
             fig_summary = plot_shap_summary(explainer_g, X_sample, model_name_g)
             st.pyplot(fig_summary, use_container_width=True)
@@ -374,16 +380,16 @@ elif page == "🔍 Explain":
 
             with st.spinner("Computing local SHAP values ..."):
                 explainer_l = get_explainer(model_l, X_train, model_name_l)
-                fig_wf = plot_shap_waterfall(explainer_l, X_row, model_name_l)
+                fig_wf      = plot_shap_waterfall(explainer_l, X_row, model_name_l)
                 st.pyplot(fig_wf, use_container_width=True)
 
             st.markdown("---")
             st.subheader("Top reasons in plain English")
             reasons = get_top_churn_reasons(explainer_l, X_row, feature_names, top_n=5)
             for i, r in enumerate(reasons, 1):
-                direction_icon = "⬆️" if r["direction"].startswith("increases") else "⬇️"
+                icon = "⬆️" if r["direction"].startswith("increases") else "⬇️"
                 st.markdown(
                     f"**{i}.** `{r['feature']}` — "
-                    f"{direction_icon} {r['direction']} "
+                    f"{icon} {r['direction']} "
                     f"(SHAP = {r['shap_value']:+.4f})"
                 )
