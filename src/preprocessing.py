@@ -40,7 +40,7 @@ def preprocess(df: pd.DataFrame, fit_scaler: bool = True, scaler=None):
 
     # Fix TotalCharges stored as string
     df["TotalCharges"] = pd.to_numeric(df["TotalCharges"], errors="coerce")
-    df["TotalCharges"].fillna(df["TotalCharges"].median(), inplace=True)
+    df["TotalCharges"] = df["TotalCharges"].fillna(df["TotalCharges"].median())
 
     # Drop customer ID
     df.drop(columns=["customerID"], inplace=True, errors="ignore")
