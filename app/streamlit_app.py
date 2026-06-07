@@ -75,6 +75,169 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+
+def inject_theme():
+    st.markdown(
+        """
+        <style>
+        :root {
+            --ink: #172033;
+            --muted: #5f6b7a;
+            --line: #dde5ee;
+            --panel-soft: #f7f9fc;
+            --blue: #2266d8;
+            --teal: #0f9f9a;
+            --amber: #e59f21;
+            --red: #d94b4b;
+        }
+
+        .stApp {
+            background: linear-gradient(180deg, #f6f9fc 0%, #ffffff 360px);
+            color: var(--ink);
+        }
+
+        [data-testid="stSidebar"] {
+            background: #111827;
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        [data-testid="stSidebar"] * {
+            color: #f8fafc !important;
+        }
+
+        [data-testid="stSidebar"] [role="radiogroup"] label {
+            border-radius: 8px;
+            padding: 0.4rem 0.65rem;
+            margin: 0.15rem 0;
+        }
+
+        [data-testid="stSidebar"] [role="radiogroup"] label:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .block-container {
+            padding-top: 2rem;
+            padding-bottom: 3rem;
+            max-width: 1180px;
+        }
+
+        h1, h2, h3 {
+            letter-spacing: 0;
+            color: var(--ink);
+        }
+
+        .app-hero {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 1.35rem 1.45rem;
+            margin-bottom: 1rem;
+            background:
+                linear-gradient(135deg, rgba(34, 102, 216, 0.10), rgba(15, 159, 154, 0.09)),
+                #ffffff;
+            box-shadow: 0 12px 30px rgba(23, 32, 51, 0.08);
+        }
+
+        .eyebrow {
+            color: var(--teal);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin-bottom: 0.35rem;
+        }
+
+        .app-hero h1 {
+            font-size: clamp(2rem, 5vw, 3.2rem);
+            line-height: 1.05;
+            margin: 0;
+        }
+
+        .app-hero p {
+            color: var(--muted);
+            font-size: 1.05rem;
+            margin: 0.7rem 0 0;
+            max-width: 760px;
+        }
+
+        .section-card {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 1rem 1.05rem;
+            background: #ffffff;
+            box-shadow: 0 8px 22px rgba(23, 32, 51, 0.05);
+        }
+
+        [data-testid="stMetric"] {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 0.85rem 0.95rem;
+            background: #ffffff;
+            box-shadow: 0 8px 20px rgba(23, 32, 51, 0.045);
+        }
+
+        [data-testid="stMetricLabel"] {
+            color: var(--muted);
+            font-weight: 700;
+        }
+
+        [data-testid="stMetricValue"] {
+            color: var(--ink);
+            font-weight: 800;
+        }
+
+        .risk-box {
+            border-radius: 8px;
+            padding: 1rem 1.1rem;
+            border: 1px solid var(--line);
+            background: var(--panel-soft);
+            margin-top: 0.5rem;
+        }
+
+        .risk-high { border-color: rgba(217, 75, 75, 0.35); background: #fff5f5; }
+        .risk-medium { border-color: rgba(229, 159, 33, 0.40); background: #fffaf0; }
+        .risk-low { border-color: rgba(15, 159, 154, 0.35); background: #f0fdfa; }
+
+        div[data-testid="stForm"] {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 1.1rem;
+            background: #ffffff;
+            box-shadow: 0 10px 26px rgba(23, 32, 51, 0.06);
+        }
+
+        .stButton > button {
+            border-radius: 8px;
+            font-weight: 800;
+            border: 1px solid #1f57bb;
+            background: linear-gradient(135deg, var(--blue), #164aa5);
+            color: white;
+        }
+
+        .stButton > button:hover {
+            border-color: #123e8d;
+            box-shadow: 0 8px 20px rgba(34, 102, 216, 0.22);
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def page_header(eyebrow, title, subtitle):
+    st.markdown(
+        f"""
+        <div class="app-hero">
+            <div class="eyebrow">{eyebrow}</div>
+            <h1>{title}</h1>
+            <p>{subtitle}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+inject_theme()
+
 # ---------------------------------------------------------------
 # Cache expensive operations
 # ---------------------------------------------------------------
@@ -107,7 +270,8 @@ def get_explainer(_model, _X_train, model_name):
 # ---------------------------------------------------------------
 # Sidebar navigation
 # ---------------------------------------------------------------
-st.sidebar.title("📉 Churn Predictor")
+st.sidebar.markdown("## 📉 Churn Predictor")
+st.sidebar.caption("Retention intelligence dashboard")
 st.sidebar.markdown("---")
 page = st.sidebar.radio(
     "Navigate",
@@ -117,7 +281,7 @@ page = st.sidebar.radio(
 st.sidebar.markdown("---")
 st.sidebar.markdown("**Dataset:** Telco Customer Churn")
 st.sidebar.markdown("**Models:** LR · RF · XGBoost")
-st.sidebar.markdown("[GitHub](https://github.com) · [Dataset](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)")
+st.sidebar.markdown("[GitHub](https://github.com/aliibtisam1001/customer-churn-prediction) · [Dataset](https://www.kaggle.com/datasets/blastchar/telco-customer-churn)")
 
 # ---------------------------------------------------------------
 # Load data
@@ -140,12 +304,11 @@ except FileNotFoundError:
 # Page 1 — Home
 # ---------------------------------------------------------------
 if page == "🏠 Home":
-    st.title("📉 Customer Churn Prediction")
-    st.markdown(
-        "A production-style ML pipeline that predicts which telecom customers will churn "
-        "— and **explains exactly why** using SHAP values."
+    page_header(
+        "Customer retention cockpit",
+        "Customer Churn Prediction",
+        "Predict churn risk, compare model performance, and explain the drivers behind each decision."
     )
-    st.markdown("---")
 
     summary = get_data_summary(df_raw)
     col1, col2, col3, col4 = st.columns(4)
@@ -153,6 +316,21 @@ if page == "🏠 Home":
     col2.metric("Churn Rate", f"{summary['churn_rate']}%")
     col3.metric("Avg Tenure", f"{summary['avg_tenure']} months")
     col4.metric("Avg Monthly Charges", f"${summary['avg_monthly_charges']}")
+
+    st.markdown("")
+    k1, k2, k3 = st.columns(3)
+    k1.markdown(
+        '<div class="section-card"><h3>Fast scoring</h3><p>Use the Predict page to score a customer profile in seconds.</p></div>',
+        unsafe_allow_html=True,
+    )
+    k2.markdown(
+        '<div class="section-card"><h3>Model confidence</h3><p>Compare Logistic Regression, Random Forest, and XGBoost side by side.</p></div>',
+        unsafe_allow_html=True,
+    )
+    k3.markdown(
+        '<div class="section-card"><h3>Explainable output</h3><p>SHAP views surface which features push churn risk up or down.</p></div>',
+        unsafe_allow_html=True,
+    )
 
     st.markdown("---")
     col_a, col_b = st.columns(2)
@@ -188,9 +366,11 @@ if page == "🏠 Home":
 # Page 2 — EDA
 # ---------------------------------------------------------------
 elif page == "📊 EDA":
-    st.title("📊 Exploratory Data Analysis")
-    st.markdown("Explore how churn relates to customer attributes.")
-    st.markdown("---")
+    page_header(
+        "Exploration",
+        "Churn Patterns",
+        "Scan the customer base and see which service, contract, and billing signals are tied to churn."
+    )
 
     col1, col2 = st.columns(2)
     with col1:
@@ -223,8 +403,11 @@ elif page == "📊 EDA":
 # Page 3 — Model Results
 # ---------------------------------------------------------------
 elif page == "🤖 Model Results":
-    st.title("🤖 Model Results")
-    st.markdown("---")
+    page_header(
+        "Model performance",
+        "Training Results",
+        "Compare ROC curves, confusion matrices, feature importance, and classification metrics."
+    )
 
     st.subheader("ROC Curves")
     st.plotly_chart(plot_roc_curves_plotly(models, X_test, y_test), use_container_width=True)
@@ -260,9 +443,11 @@ elif page == "🤖 Model Results":
 # Page 4 — Predict
 # ---------------------------------------------------------------
 elif page == "🔮 Predict":
-    st.title("🔮 Predict Customer Churn")
-    st.markdown("Fill in a customer's details and get an instant churn probability.")
-    st.markdown("---")
+    page_header(
+        "Live scoring",
+        "Predict Customer Churn",
+        "Enter a customer's profile and get an instant churn probability with a clear risk level."
+    )
 
     with st.form("predict_form"):
         col1, col2, col3 = st.columns(3)
@@ -329,11 +514,27 @@ elif page == "🔮 Predict":
         col_r3.metric("Risk Level", risk)
 
         if prob >= 0.7:
+            risk_class = "risk-high"
+            recommendation = "Prioritize a retention call, contract incentive, or support review."
             st.error("⚠️ High risk of churning. Intervention recommended.")
         elif prob >= 0.4:
+            risk_class = "risk-medium"
+            recommendation = "Monitor this account and consider a targeted loyalty offer."
             st.warning("🟡 Moderate churn risk. Consider a retention offer.")
         else:
+            risk_class = "risk-low"
+            recommendation = "Keep engagement steady and use this profile as a low-risk benchmark."
             st.success("✅ This customer is likely to stay.")
+
+        st.markdown(
+            f"""
+            <div class="risk-box {risk_class}">
+                <strong>Recommended next step:</strong>
+                {recommendation}
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
         st.session_state["last_X_row"]      = X_row
         st.session_state["last_model_name"] = model_choice
@@ -344,9 +545,11 @@ elif page == "🔮 Predict":
 # Page 5 — Explain
 # ---------------------------------------------------------------
 elif page == "🔍 Explain":
-    st.title("🔍 SHAP Explainability")
-    st.markdown("Understand **why** the model makes its predictions.")
-    st.markdown("---")
+    page_header(
+        "Explainability",
+        "Why The Model Decides",
+        "Use SHAP to understand global churn drivers and the top reasons behind an individual prediction."
+    )
 
     tab1, tab2 = st.tabs(["🌍 Global Explanation", "👤 Customer Explanation"])
 
