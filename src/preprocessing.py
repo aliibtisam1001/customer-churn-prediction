@@ -72,8 +72,8 @@ def preprocess(df: pd.DataFrame, fit_scaler: bool = True, scaler=None):
     )
 
     # Handle imbalance with oversampling (pure sklearn, no imbalanced-learn)
-    X_train_df = pd.DataFrame(X_train, columns=feature_names)
-    y_train_series = pd.Series(y_train.values, name="Churn")
+    X_train_df = X_train.reset_index(drop=True)
+    y_train_series = y_train.reset_index(drop=True).rename("Churn")
 
     X_majority = X_train_df[y_train_series == 0]
     X_minority = X_train_df[y_train_series == 1]
