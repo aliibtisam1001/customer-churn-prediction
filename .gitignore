@@ -1,16 +1,24 @@
 # Data
-data/*.csv
 data/*.zip
 
 # Models
 models/*.pkl
+*.pkl
 
 # Python
 __pycache__/
 *.py[cod]
+*$py.class
 .env
 venv/
 .venv/
+env/
+
+# Deployment & Testing
+.vercel/
+.pytest_cache/
+.coverage
+htmlcov/
 
 # Jupyter
 .ipynb_checkpoints/

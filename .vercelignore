@@ -1,0 +1,35 @@
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter Notebooks
+notebooks/
+*.ipynb
+.ipynb_checkpoints/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Local Model Pickles
+models/*.pkl
+*.pkl
+
+# Documentation & Git
+README.md
+data/README.md
+models/README.md
+.git/
+.github/
+
+# OS & IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
